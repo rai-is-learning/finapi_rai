@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 import os
 from azure.storage.blob import BlobServiceClient
 from datetime import timezone
+import time
+import math
 
 app = Flask(__name__)
 
@@ -107,3 +109,29 @@ def list_csv_reports():
         return jsonify({"error": str(e)}), 500
 
 # IMPORTANT: No app.run() when deploying to Azure Linux App Service
+@app.route('/api/slow-endpoint')
+def slow_endpoint():
+    time.sleep(5)
+    return "This was a slow response after 5 seconds"
+
+@app.route('/high-cpu')
+def high_cpu():
+    # Simulate CPU load by calculating primes
+    n = 50000
+    primes = []
+    for num in range(2, n):
+        is_prime = True
+        for i in range(2, int(math.sqrt(num)) + 1):
+            if num % i == 0:
+                is_prime = False
+                break
+        if is_prime:
+            primes.append(num)
+    return f"Calculated {len(primes)} prime numbers."
+
+@app.route('/high-memory')
+def high_memory():
+    # Simulate memory load
+    data = ['x' * 1024 * 1024] * 500  # ~500MB in-memory array
+    time.sleep(5)
+    return f"Allocated {len(data)} MB of memory temporarily."
